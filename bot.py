@@ -1,11 +1,15 @@
 from typing import List
 from game_message import GameMessage, Position, Crew, TileType, Map
 from game_command import Action, UnitAction, UnitActionType, ActionType, UnitType, BuyAction
-import random
 
+class MineArea:
+    def __init__(self, pos, mine):
+        self.pos = pos
+        self.mine =mine
 
 class Bot:
     def __init__(self):
+        self.mine_area = []
         self.initialisation = True
         self.mines = []
         self.target_mine = None
@@ -20,7 +24,11 @@ class Bot:
             for x in range(0, map.get_map_size()):
                 if map.tiles[x][y] == "MINE":
                     self.mines.append(Position(x, y))
+        # for mine in self.mines:
+        #     for arena_mine in map.get_adj(mine):
+        #         self.mine_area.append(MineArea(arena_mine, mine))
         self.target_mine = min(self.mines, key=lambda k: distance(k, my_crew.homeBase))
+        # self.target_mine = self.mines[0]
         self.miner_target = min(map.get_adj(self.target_mine), key=lambda k: distance(k, my_crew.homeBase))
         self.miner_target = min(map.get_adj(self.target_mine), key=lambda k: distance(k, my_crew.homeBase))
         self.car_target = min(map.get_adj(self.miner_target), key=lambda k: distance(k, my_crew.homeBase))
@@ -35,28 +43,16 @@ class Bot:
 
         actions: List[UnitAction] = []
 
-        unit = my_crew.units[0]
-
         for unit in my_crew.units:
             if unit.type == UnitType.MINER:
+                miner_blizt = unit.blitzium
                 print(unit.id, unit.position, unit.blitzium)
                 if not unit.position == self.miner_target:
                     actions.append(UnitAction(UnitActionType.MOVE, unit.id, self.miner_target))
                 else:
                     actions.append(UnitAction(UnitActionType.MINE, unit.id, self.target_mine))
 
-                #     if unit.blitzium < 5:
-                #         mine = [i for i in mines if adj(i, unit.position)][0]
-                #         actions.append(UnitAction(UnitActionType.MINE, unit.id, mine))
-                #     else:
-                #         if adj(unit.position, my_crew.homeBase):
-                #             actions.append(UnitAction(UnitActionType.DROP, unit.id, my_crew.homeBase))
-                #         else:
-                #             adj_home = Position(*(get_adj(my_crew.homeBase)[0]))
-                #             target = Position(adj_home.x, adj_home.y)
-                #             actions.append(UnitAction(UnitActionType.MOVE, unit.id, target))
-                # else:
-                #     actions.append(UnitAction(UnitActionType.MOVE, unit.id, target))
+
             if unit.type == UnitType.CART:
                 if unit.blitzium < 25:
                     if not unit.position == self.car_target:
@@ -71,7 +67,7 @@ class Bot:
 
         print(my_crew.blitzium, len(my_crew.units))
 
-        if my_crew.prices.CART <= my_crew.blitzium and len(my_crew.units) < 2:
+        if my_crew.prices.CART <= my_crew.blitzium and (len(my_crew.units) < 2):
             actions.append(BuyAction(UnitType.CART))
 
         return actions
@@ -118,15 +114,6 @@ class Bot:
             x, y = next
         path.reverse()
         return path
-
-
-def adj(pos1, pos2):
-    return abs((pos1.x - pos2.x) + (pos1.y - pos2.y)) == 1
-
-
-def get_adj(pos):
-    x, y = pos.x, pos.y
-    return [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
 
 
 def distance(pos1, pos2):
