@@ -85,6 +85,18 @@ class Map:
         else:
             raise Exception("Not a valid tile")
 
+    def is_adj(self, pos1, pos2):
+        return abs((pos1.x - pos2.x) + (pos1.y - pos2.y)) == 1
+
+    def get_adj(self, pos):
+        x, y = pos.x, pos.y
+        adj = []
+        for neighbour in [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]:
+            x, y = neighbour
+            if self.tiles[x][y] == "EMPTY":
+                adj.append(Position(x, y))
+        return adj
+
 
 @dataclass_json
 @dataclass
